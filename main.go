@@ -1,29 +1,39 @@
+//go:build js && wasm
+
 package main
 
 import (
+	"fmt"
 	// "github.com/gopherjs/gopherjs/js"
 	. "github.com/siongui/godom/wasm"
+	"syscall/js"
 )
 
-func main() {
-	// js.Global.Set("pet", map[string]interface{}{
-	// 	"New": New,
-	// })
-	Window.Alert("hello world!")
+var signal = make(chan int)
+
+var foo = Document.GetElementById("foo")
+var count = 0
+
+func keepAlive() {
+	for {
+		<-signal
+	}
 }
 
-// type Pet struct {
-// 	name string
-// }
+func clicked(this js.Value, args []js.Value) interface{} {
+	count++
+	foo.Set("textContent", fmt.Sprintf("I am clicked %d time", count))
+	return js.ValueOf(count)
+}
 
-// func New(name string) *js.Object {
-// 	return js.MakeWrapper(&Pet{name})
-// }
+func main() {
+	Window.Alert("hello world!")
+	testdivs := Document.QuerySelectorAll("#testdivs > div")
+	for _, testdiv := range testdivs {
+		testdiv.Set("innerHTML", "hi")
+	}
+	cb := js.FuncOf(clicked)
+	foo.Call("addEventListener", "click", cb)
 
-// func (p *Pet) Name() string {
-// 	return p.name
-// }
-
-// func (p *Pet) SetName(name string) {
-// 	p.name = name
-// }
+	keepAlive()
+}
