@@ -1,2 +1,1 @@
-# wasm-study-go
-try to use wasm in golang
+GOARCH=wasm GOOS=js go get github.com/norunners/vue
